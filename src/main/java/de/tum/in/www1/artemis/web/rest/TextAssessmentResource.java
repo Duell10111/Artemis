@@ -1,7 +1,6 @@
 package de.tum.in.www1.artemis.web.rest;
 
 import static de.tum.in.www1.artemis.web.rest.util.ResponseUtil.forbidden;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.time.ZonedDateTime;
@@ -37,6 +36,7 @@ import de.tum.in.www1.artemis.web.rest.util.HeaderUtil;
  * REST controller for managing TextAssessment.
  */
 @RestController
+// TODO: remove 'text-assessments' here
 @RequestMapping("/api/text-assessments")
 public class TextAssessmentResource extends AssessmentResource {
 
@@ -293,13 +293,7 @@ public class TextAssessmentResource extends AssessmentResource {
         if (!authCheckService.isAtLeastTeachingAssistantForExercise(textExercise, user)) {
             return forbidden();
         }
-        Submission submission = textAssessmentService.getSubmissionOfExampleSubmissionWithResult(submissionId);
-
-        // If the user is not an instructor, and this is not an example submission used for tutorial, do not provide the results
-        boolean isAtLeastInstructor = authCheckService.isAtLeastInstructorForExercise(textExercise, user);
-        if (!submission.isExampleSubmission() && !isAtLeastInstructor) {
-            return forbidden();
-        }
+        Submission submission = textAssessmentService.findExampleSubmissionWithResult(submissionId);
         return ResponseEntity.ok(submission.getResult());
     }
 
@@ -416,13 +410,13 @@ public class TextAssessmentResource extends AssessmentResource {
      * @param textBlocks received from Client
      * @param textSubmission to associate blocks with
      */
-    private void saveTextBlocks(List<TextBlock> textBlocks, TextSubmission textSubmission) {
+    private void saveTextBlocks(final Set<TextBlock> textBlocks, final TextSubmission textSubmission) {
         if (textBlocks != null) {
             final Set<String> existingTextBlockIds = textSubmission.getBlocks().stream().map(TextBlock::getId).collect(toSet());
-            textBlocks = textBlocks.stream().filter(tb -> !existingTextBlockIds.contains(tb.getId())).peek(tb -> {
+            final var updatedTextBlocks = textBlocks.stream().filter(tb -> !existingTextBlockIds.contains(tb.getId())).peek(tb -> {
                 tb.setSubmission(textSubmission);
-            }).collect(toList());
-            textBlockRepository.saveAll(textBlocks);
+            }).collect(toSet());
+            textBlockRepository.saveAll(updatedTextBlocks);
         }
     }
 }

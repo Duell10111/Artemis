@@ -220,6 +220,8 @@ public class ParticipationService {
             programmingExerciseStudentParticipation = copyRepository(programmingExerciseStudentParticipation);
             programmingExerciseStudentParticipation = configureRepository((ProgrammingExercise) exercise, programmingExerciseStudentParticipation);
             programmingExerciseStudentParticipation = copyBuildPlan(programmingExerciseStudentParticipation);
+            // Restore programming exercise that got removed due to saving the programmingExerciseStudentParticipation
+            programmingExerciseStudentParticipation.setProgrammingExercise((ProgrammingExercise) exercise);
             programmingExerciseStudentParticipation = configureBuildPlan(programmingExerciseStudentParticipation);
             // we might need to perform an empty commit (depends on the CI system), we perform this here, because it should not trigger a new programming submission
             programmingExerciseStudentParticipation = performEmptyCommit(programmingExerciseStudentParticipation);
@@ -906,6 +908,16 @@ public class ParticipationService {
      */
     public List<StudentParticipation> findByExerciseIdWithLatestAutomaticResultAndFeedbacks(Long exerciseId) {
         return studentParticipationRepository.findByExerciseIdWithLatestAutomaticResultAndFeedbacks(exerciseId);
+    }
+
+    /**
+     * Get all programming exercise participations belonging to exercise with eager latest {@link AssessmentType#MANUAL} results and feedbacks.
+     *
+     * @param exerciseId the id of exercise
+     * @return the list of programming exercise participations belonging to exercise
+     */
+    public List<StudentParticipation> findByExerciseIdWithManualResultAndFeedbacks(Long exerciseId) {
+        return studentParticipationRepository.findByExerciseIdWithManualResultAndFeedbacks(exerciseId);
     }
 
     /**

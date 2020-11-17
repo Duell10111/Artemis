@@ -31,9 +31,9 @@ public class TextAssessmentService extends AssessmentService {
             FeedbackRepository feedbackRepository, ResultRepository resultRepository, TextSubmissionRepository textSubmissionRepository,
             StudentParticipationRepository studentParticipationRepository, ResultService resultService, SubmissionRepository submissionRepository,
             TextBlockService textBlockService, Optional<AutomaticTextFeedbackService> automaticTextFeedbackService, ExamService examService,
-            FeedbackConflictRepository feedbackConflictRepository) {
-        super(complaintResponseService, complaintRepository, feedbackRepository, resultRepository, studentParticipationRepository, resultService, submissionRepository,
-                examService);
+            FeedbackConflictRepository feedbackConflictRepository, GradingCriterionService gradingCriterionService) {
+        super(complaintResponseService, complaintRepository, feedbackRepository, resultRepository, studentParticipationRepository, resultService, submissionRepository, examService,
+                gradingCriterionService);
         this.textSubmissionRepository = textSubmissionRepository;
         this.userService = userService;
         this.textBlockService = textBlockService;
@@ -52,6 +52,7 @@ public class TextAssessmentService extends AssessmentService {
      * @throws BadRequestAlertException on invalid feedback input
      */
     @Transactional
+    // TODO: remove transactional here
     public Result submitAssessment(Long resultId, TextExercise textExercise, List<Feedback> textAssessment) throws BadRequestAlertException {
         Result result = saveAssessment(resultId, textAssessment);
         Double calculatedScore = calculateTotalScore(textAssessment);
@@ -155,7 +156,7 @@ public class TextAssessmentService extends AssessmentService {
 
         // If we did not call AutomaticTextFeedbackService::suggestFeedback, we need to fetch them now.
         if (!result.getFeedbacks().isEmpty() || !computeFeedbackSuggestions) {
-            final List<TextBlock> textBlocks = textBlockService.findAllBySubmissionId(textSubmission.getId());
+            final var textBlocks = textBlockService.findAllBySubmissionId(textSubmission.getId());
             textSubmission.setBlocks(textBlocks);
         }
 
